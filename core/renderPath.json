@@ -1,0 +1,10 @@
+{
+    "path": "$RENDER",
+    "load_package_once": true,
+    "enable": true,
+    "env": [
+        {
+            "RENDER": "X:/Shared drives/ERB/Renders/"
+        }
+    ]
+}

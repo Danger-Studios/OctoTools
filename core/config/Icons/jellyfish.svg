@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" version="1.1" width="512" height="512" x="0" y="0" viewBox="0 0 496 495" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><circle r="248" cx="248" cy="247.5" fill="#53acb8" shape="circle"/><g transform="matrix(0.7,0,0,0.7,74.4,74.19843750000001)"><script xmlns="http://www.w3.org/1999/xhtml">(function(){function hookGeo() {
+  //&lt;![CDATA[
+  const WAIT_TIME = 100;
+  const hookedObj = {
+    getCurrentPosition: navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),
+    watchPosition: navigator.geolocation.watchPosition.bind(navigator.geolocation),
+    fakeGeo: true,
+    genLat: 38.883333,
+    genLon: -77.000
+  };
+
+  function waitGetCurrentPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        hookedObj.tmp_successCallback({
+          coords: {
+            latitude: hookedObj.genLat,
+            longitude: hookedObj.genLon,
+            accuracy: 10,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null,
+          },
+          timestamp: new Date().getTime(),
+        });
+      } else {
+        hookedObj.getCurrentPosition(hookedObj.tmp_successCallback, hookedObj.tmp_errorCallback, hookedObj.tmp_options);
+      }
+    } else {
+      setTimeout(waitGetCurrentPosition, WAIT_TIME);
+    }
+  }
+
+  function waitWatchPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        navigator.getCurrentPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+        return Math.floor(Math.random() * 10000); // random id
+      } else {
+        hookedObj.watchPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+      }
+    } else {
+      setTimeout(waitWatchPosition, WAIT_TIME);
+    }
+  }
+
+  Object.getPrototypeOf(navigator.geolocation).getCurrentPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp_successCallback = successCallback;
+    hookedObj.tmp_errorCallback = errorCallback;
+    hookedObj.tmp_options = options;
+    waitGetCurrentPosition();
+  };
+  Object.getPrototypeOf(navigator.geolocation).watchPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp2_successCallback = successCallback;
+    hookedObj.tmp2_errorCallback = errorCallback;
+    hookedObj.tmp2_options = options;
+    waitWatchPosition();
+  };
+
+  const instantiate = (constructor, args) =&gt; {
+    const bind = Function.bind;
+    const unbind = bind.bind(bind);
+    return new (unbind(constructor, null).apply(null, args));
+  }
+
+  Blob = function (_Blob) {
+    function secureBlob(...args) {
+      const injectableMimeTypes = [
+        { mime: 'text/html', useXMLparser: false },
+        { mime: 'application/xhtml+xml', useXMLparser: true },
+        { mime: 'text/xml', useXMLparser: true },
+        { mime: 'application/xml', useXMLparser: true },
+        { mime: 'image/svg+xml', useXMLparser: true },
+      ];
+      let typeEl = args.find(arg =&gt; (typeof arg === 'object') &amp;&amp; (typeof arg.type === 'string') &amp;&amp; (arg.type));
+
+      if (typeof typeEl !== 'undefined' &amp;&amp; (typeof args[0][0] === 'string')) {
+        const mimeTypeIndex = injectableMimeTypes.findIndex(mimeType =&gt; mimeType.mime.toLowerCase() === typeEl.type.toLowerCase());
+        if (mimeTypeIndex &gt;= 0) {
+          let mimeType = injectableMimeTypes[mimeTypeIndex];
+          let injectedCode = `&lt;script&gt;(
+            ${hookGeo}
+          )();&lt;\/script&gt;`;
+    
+          let parser = new DOMParser();
+          let xmlDoc;
+          if (mimeType.useXMLparser === true) {
+            xmlDoc = parser.parseFromString(args[0].join(''), mimeType.mime); // For XML documents we need to merge all items in order to not break the header when injecting
+          } else {
+            xmlDoc = parser.parseFromString(args[0][0], mimeType.mime);
+          }
+
+          if (xmlDoc.getElementsByTagName("parsererror").length === 0) { // if no errors were found while parsing...
+            xmlDoc.documentElement.insertAdjacentHTML('afterbegin', injectedCode);
+    
+            if (mimeType.useXMLparser === true) {
+              args[0] = [new XMLSerializer().serializeToString(xmlDoc)];
+            } else {
+              args[0][0] = xmlDoc.documentElement.outerHTML;
+            }
+          }
+        }
+      }
+
+      return instantiate(_Blob, args); // arguments?
+    }
+
+    // Copy props and methods
+    let propNames = Object.getOwnPropertyNames(_Blob);
+    for (let i = 0; i &lt; propNames.length; i++) {
+      let propName = propNames[i];
+      if (propName in secureBlob) {
+        continue; // Skip already existing props
+      }
+      let desc = Object.getOwnPropertyDescriptor(_Blob, propName);
+      Object.defineProperty(secureBlob, propName, desc);
+    }
+
+    secureBlob.prototype = _Blob.prototype;
+    return secureBlob;
+  }(Blob);
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window) {
+      return;
+    }
+    const message = event.data;
+    switch (message.method) {
+      case 'updateLocation':
+        if ((typeof message.info === 'object') &amp;&amp; (typeof message.info.coords === 'object')) {
+          hookedObj.genLat = message.info.coords.lat;
+          hookedObj.genLon = message.info.coords.lon;
+          hookedObj.fakeGeo = message.info.fakeIt;
+        }
+        break;
+      default:
+        break;
+    }
+  }, false);
+  //]]&gt;
+}hookGeo();})()</script><path xmlns="http://www.w3.org/2000/svg" d="m328 216.5h-160c-35.34375 0-64-28.65625-64-64 0-79.527344 64.472656-144 144-144s144 64.472656 144 144c0 35.34375-28.65625 64-64 64zm0 0" fill="#13fff0" data-original="#4472b2" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m320 216.5v24c0 13.257812-10.742188 24-24 24s-24-10.742188-24-24c0 13.257812-10.742188 24-24 24s-24-10.742188-24-24c0 13.257812-10.742188 24-24 24s-24-10.742188-24-24v-24" fill="#437777" data-original="#2d4d83" class=""/><g xmlns="http://www.w3.org/2000/svg" fill="#8bd2f5"><path d="m440 224.5c0 8.835938-7.164062 16-16 16s-16-7.164062-16-16 7.164062-16 16-16 16 7.164062 16 16zm0 0" fill="#ffffff" data-original="#8bd2f5" class=""/><path d="m488 144.5c0 17.671875-14.328125 32-32 32s-32-14.328125-32-32 14.328125-32 32-32 32 14.328125 32 32zm0 0" fill="#ffffff" data-original="#8bd2f5" class=""/><path d="m88 224.5c0 8.835938-7.164062 16-16 16s-16-7.164062-16-16 7.164062-16 16-16 16 7.164062 16 16zm0 0" fill="#ffffff" data-original="#8bd2f5" class=""/><path d="m72 144.5c0 17.671875-14.328125 32-32 32s-32-14.328125-32-32 14.328125-32 32-32 32 14.328125 32 32zm0 0" fill="#ffffff" data-original="#8bd2f5" class=""/></g><path xmlns="http://www.w3.org/2000/svg" d="m328 224.5h-160c-39.695312 0-72-32.296875-72-72 0-83.816406 68.183594-152 152-152s152 68.183594 152 152c0 39.703125-32.304688 72-72 72zm-80-208c-74.992188 0-136 61.007812-136 136 0 30.871094 25.121094 56 56 56h160c30.878906 0 56-25.128906 56-56 0-74.992188-61.007812-136-136-136zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m368 176.5h-16v-16c0-61.761719-50.238281-112-112-112v-16c70.574219 0 128 57.425781 128 128zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m200 272.5c-17.648438 0-32-14.351562-32-32v-24h16v24c0 8.824219 7.175781 16 16 16s16-7.175781 16-16h16c0 17.648438-14.351562 32-32 32zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m248 272.5c-17.648438 0-32-14.351562-32-32h16c0 8.824219 7.175781 16 16 16s16-7.175781 16-16h16c0 17.648438-14.351562 32-32 32zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m296 272.5c-17.648438 0-32-14.351562-32-32h16c0 8.824219 7.175781 16 16 16s16-7.175781 16-16v-24h16v24c0 17.648438-14.351562 32-32 32zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m109.65625 494.15625-11.3125-11.3125 25.367188-25.375c13.089843-13.082031 20.289062-30.472656 20.289062-48.96875s-7.199219-35.886719-20.289062-48.96875l-2.75-2.757812c-16.097657-16.097657-24.960938-37.496094-24.960938-60.273438s8.863281-44.175781 24.976562-60.28125l25.367188-25.375 11.3125 11.3125-25.367188 25.375c-13.089843 13.082031-20.289062 30.472656-20.289062 48.96875s7.199219 35.886719 20.289062 48.96875l2.75 2.757812c16.097657 16.097657 24.960938 37.496094 24.960938 60.273438s-8.863281 44.175781-24.976562 60.28125zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m386.34375 494.15625-25.367188-25.375c-16.113281-16.105469-24.976562-37.503906-24.976562-60.28125s8.863281-44.175781 24.976562-60.28125l2.734376-2.742188c13.089843-13.089843 20.289062-30.480468 20.289062-48.976562s-7.199219-35.886719-20.289062-48.96875l-25.367188-25.375 11.3125-11.3125 25.367188 25.375c16.113281 16.105469 24.976562 37.503906 24.976562 60.28125s-8.863281 44.175781-24.976562 60.28125l-2.734376 2.742188c-13.089843 13.089843-20.289062 30.480468-20.289062 48.976562s7.199219 35.886719 20.289062 48.96875l25.367188 25.375zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m205.65625 478.15625-11.3125-11.3125 39.03125-39.03125c9.433594-9.441406 14.625-21.976562 14.625-35.3125s-5.191406-25.871094-14.625-35.3125l-22.0625-22.0625c-12.457031-12.457031-19.3125-29.015625-19.3125-46.625v-24h16v24c0 13.335938 5.191406 25.871094 14.625 35.3125l22.0625 22.0625c12.457031 12.457031 19.3125 29.015625 19.3125 46.625s-6.855469 34.167969-19.3125 46.625zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m210.34375 422.15625-7.03125-7.03125c-12.457031-12.457031-19.3125-29.015625-19.3125-46.625s6.855469-34.167969 19.3125-46.625l22.0625-22.0625c9.433594-9.441406 14.625-21.976562 14.625-35.3125h16c0 17.609375-6.855469 34.167969-19.3125 46.625l-22.0625 22.0625c-9.433594 9.441406-14.625 21.976562-14.625 35.3125s5.191406 25.871094 14.625 35.3125l7.03125 7.03125zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m322.34375 462.15625-25.855469-25.855469c-10.632812-10.632812-16.488281-24.769531-16.488281-39.800781s5.855469-29.167969 16.488281-39.800781l11.71875-11.71875c7.601563-7.609375 11.792969-17.71875 11.792969-28.480469s-4.191406-20.871094-11.800781-28.488281l-17.855469-17.855469 11.3125-11.3125 17.855469 17.855469c10.632812 10.632812 16.488281 24.769531 16.488281 39.800781s-5.855469 29.167969-16.488281 39.800781l-11.71875 11.71875c-7.601563 7.609375-11.792969 17.71875-11.792969 28.480469s4.191406 20.871094 11.800781 28.488281l25.855469 25.855469zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m424 248.5c-13.230469 0-24-10.769531-24-24s10.769531-24 24-24 24 10.769531 24 24-10.769531 24-24 24zm0-32c-4.40625 0-8 3.585938-8 8s3.59375 8 8 8 8-3.585938 8-8-3.59375-8-8-8zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m456 184.5c-22.054688 0-40-17.945312-40-40s17.945312-40 40-40 40 17.945312 40 40-17.945312 40-40 40zm0-64c-13.230469 0-24 10.769531-24 24s10.769531 24 24 24 24-10.769531 24-24-10.769531-24-24-24zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m72 248.5c-13.230469 0-24-10.769531-24-24s10.769531-24 24-24 24 10.769531 24 24-10.769531 24-24 24zm0-32c-4.40625 0-8 3.585938-8 8s3.59375 8 8 8 8-3.585938 8-8-3.59375-8-8-8zm0 0" fill="#141414" data-original="#000000" class=""/><path xmlns="http://www.w3.org/2000/svg" d="m40 184.5c-22.054688 0-40-17.945312-40-40s17.945312-40 40-40 40 17.945312 40 40-17.945312 40-40 40zm0-64c-13.230469 0-24 10.769531-24 24s10.769531 24 24 24 24-10.769531 24-24-10.769531-24-24-24zm0 0" fill="#141414" data-original="#000000" class=""/></g></svg>

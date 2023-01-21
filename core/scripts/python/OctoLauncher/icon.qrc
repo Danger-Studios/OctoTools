@@ -1,0 +1,7 @@
+```
+<RCC>
+  <qresource prefix="/">
+    <file>launcher.png</file>
+  </qresource>
+</RCC>
+```

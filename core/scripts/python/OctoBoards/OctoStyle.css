@@ -1,0 +1,288 @@
+/* This Text Area */
+textarea#form-application_stylesheet {
+    min-height: 75rem;
+    width: calc(100% - 32px);
+    font-size: 9pt;
+    font-family: monospace;
+    line-height: 15pt;
+    background-color: #181818;
+    color: #ababab;
+    border-radius: 3px;
+    padding-left: 20px;
+}
+
+/* Import Material Icon */
+@import url('https://fonts.googleapis.com/css2?family=Material+Icons+Outlined');
+
+@font-face {
+  font-family: 'Material Icons Outlined';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/materialiconsoutlined/v108/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUce.woff2) format('woff2');
+}
+
+/* Add Material font to icons*/
+.fa {
+  font-weight: normal;
+  font-style: normal;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ibm-plex-mono-regular - latin */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital@0;1&display=swap');
+
+/* Add custom font to body */
+
+body{
+font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* Add custom font drop down fields */
+
+.select-dropdown-input-container input.select-dropdown-input {
+font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* Add custom font filter fields */
+
+.filter-box .input-addon input[type=text] {
+font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* fix tool-tip positioning */
+
+#tooltip-container {
+    margin-top: 2rem;
+    margin-left: 2rem;
+}
+
+/* turn OFF scrolling for drop-down menus */
+
+ul.dropdown-submenu-open, #select-dropdown-menu {
+    overflow: auto !important;
+}
+
+/* Project header text */
+
+header .title-container span.title {
+    overflow: visible!important;
+    font-size: 2.5rem!important;
+    align-content: top!important;
+    scroll-padding-top: 244px!important;
+}
+
+/* Task Card Progress Bar */
+.task-progress-bar {
+    height: 20px;
+    padding-bottom: 5px;
+    padding-right: 3px;
+    text-align: end;
+    background: #00000017!important;
+    border-radius: 2px!important;
+}
+
+
+/*-----[ Dragging Card ]-----*/
+
+/*When being dragged*/
+
+div.draggable-item-selected{
+    transform: rotate(5deg)!important;
+    transform-origin: top left;
+
+}
+
+
+
+
+/*-----[ Icons ]-----*/
+
+/* List View Icon */
+.fa-list:before {
+    content: "\f03a";
+}
+
+/* Calendar View Icon */
+.fa-calendar:before {
+    content: "\f783";
+}
+
+/* Board View Icon */
+.fa-th:before {
+    content: "\f0db";
+}
+
+/* Comments Icon */
+.fa-comment-o:before {
+    content: "\f27a";
+}
+
+/* Add Card Icon */
+.fa-plus:before {
+    content: "\f249";
+}
+
+.board-add-icon .fa-plus:before {
+    background: var(--color-greyscale-6);
+    color: #000!important;
+    font-size: .8em!important;
+}
+
+table th:first-child .board-add-icon .fa-plus:before {
+    background: #000!important;
+    color: var(--color-brand-cont);
+    box-shadow: var(--style-shadow-light);
+}
+
+/* Close Task Icon */
+.fa-times:before {
+    content: "\f00d";
+}
+
+/* Move Task Icon */
+.fa-arrows-h:before {
+    content: "\f256";
+}
+
+/* Sub-Task Status Icon (on card) */
+.fa-navicon:before, .fa-reorder:before, .fa-bars:before {
+    content: "\f4d7";
+}
+
+
+.task-board-icons, .task-list-icons{
+    opacity: 1!important;
+}
+
+.fa-caret-down:before {
+    content: "\f078";
+}
+
+/* Tag Icon */
+.fa-tag:before {
+    content: "\f5c3";
+}
+
+.fa-dashboard:before, .fa-tachometer:before {
+    content: "\f108";
+}
+
+.fa-chevron-circle-down:before {
+    content: "\f204";
+    font-size: 1.2rem;
+}
+
+.fa-chevron-circle-up:before {
+    content: "\f205";
+    font-size: 1.2rem;
+}
+
+.fa-info-circle:before {
+    content: "\f05a";
+    font-size: 1.2rem;
+}
+
+/* User Icon */
+.fa-user:before {
+    content: "\e061";
+}
+
+/* Filter Icon */
+.fa-filter:before {
+    content: "\f55c";
+}
+
+/* Meta Icon */
+.fa-plus-square-o:before {
+    content: "\f121";
+}
+
+/* Category Icon */
+.fa-folder-open:before {
+    content: "\f126";
+}
+
+/* Internal Link Icon */
+.fa-code-fork:before {
+    content: "\f0c1";
+}
+
+/* External Link Icon */
+.fa-external-link:before {
+    content: "\f0c6";
+}
+
+/* Move Position Icon */
+.fa-arrows:before {
+    content: "\f256";
+}
+
+/* Remove Task Icon */
+.fa-trash-o:before {
+    content: "\f2ed";
+}
+
+/* Sub-Task Complete Icon */
+.fa-check-square-o:before {
+    content: "\f14a";
+}
+
+/* Sub-Task Not Started Icon */
+.fa-square-o:before {
+    content: "\f683";
+}
+
+/* Sub-Task In Progress Icon */
+.fa-gears:before, .fa-cogs:before {
+    content: "\f70c";
+}
+
+/* Sub-Task Table on card */
+table.table-suboncard {
+    margin-bottom: 10px!important;
+}
+
+/* Sub-Task Table background on card */
+a.js-subtask-toggle-status {
+    padding: 5px;
+    border-radius: 2px;
+    background-color: #ffffff00;
+}
+
+/* Saving Card */
+.fa-spinner:before {
+    content: "\f2f9";
+}
+
+.task-board-expanded .task-board-saving-icon {
+    background-color: rgb(0 0 0 / 18%)!important;
+}
+
+.TR .avatar .avatar-letter, .avatar .avatar-letter {
+    border-radius: 2px;
+}
+
+/* Category */
+.task-board-category a, .table-list-category a {
+    color: #000!important;
+    opacity: 1!important;
+}
+
+/* Tags */
+.task-board-category, .task-tags li, .table-list-category, .task-list-tag {
+    color: #000!important;
+    opacity: 1!important;
+}
+
+/* Gantt View (Today) */
+.TR div.ganttview-grid-row-cell.ganttview-today {
+    background-color: #1dff0030!important;
+}

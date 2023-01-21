@@ -1,0 +1,38 @@
+{
+    "env": [
+        {
+            "OCTOCORE": "$OCTOTOOLS/core"
+        },
+        {
+            "OCTOLIB": "$OCTOTOOLS/lib"
+        },
+
+
+        {
+            "SHELL": "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
+        },
+        {
+            "HOUDINI_GALLERY_PATH": "$OCTOCORE/gallery"
+        },
+        {
+            "HOUDINI_TEXT_CONSOLE": "True"
+        },
+        {
+            "HOUDINI_OUTLINEFONT_PATH": "$OCTOCORE/config/fonts"
+        },
+        {
+            "HOUDINI_COLOR_MANAGER": "True"
+        },
+        {
+            "HOUDINI_DISABLE_SAVE_THUMB": "false"
+        },
+        {
+            "HOUDINI_ANONYMOUS_STATISTICS": "false"
+        }
+    ],
+
+    "package_path": [
+        "$OCTOCORE",
+        "$OCTOLIB"
+    ]
+}

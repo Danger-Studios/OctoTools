@@ -1,0 +1,6 @@
+{
+    "package_path": [
+        "$OCTOLIB/vexLib",
+        "$OCTOLIB/ae_SVG"
+    ]
+}

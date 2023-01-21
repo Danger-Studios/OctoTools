@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mainMenu>
+  <menuBar>
+    <subMenu id="OctoTools">
+      <label>OctoTools</label>
+      <separatorItem/>
+
+      <titleItem>
+        <label>OctoTools</label>
+      </titleItem>
+      <separatorItem/>
+
+      <scriptItem id="h.tool_01">
+        <label>Tool 01</label>
+        <scriptPath>$HOME/scripts/first_script.py</scriptPath>
+      </scriptItem>
+
+      <separatorItem/>
+
+      <scriptItem id="h.tool_02">
+        <label>Tool 02</label>
+        <scriptPath>$HOME/scripts/generic_script.py</scriptPath>
+        <scriptArgs>-q -n camera</scriptArgs>
+      </scriptItem>
+
+      <separatorItem/>
+
+      <scriptItem id="h.tool_03">
+        <label>Tool 03</label>
+        <scriptPath>$HOME/scripts/generic_script.py</scriptPath>
+        <scriptArgs>-q -n light</scriptArgs>
+      </scriptItem>
+
+      <separatorItem/>
+
+      <scriptToggleItem id="octo_toggle_script">
+        <label>TOGGLE</label>
+        <variableName>MYVAR_TOGGLE</variableName>
+        <scriptCode><![CDATA[
+hou.hscript("""
+if( $MYVAR_TOGGLE ) then
+set -g MYVAR_TOGGLE = 0;
+else
+set -g MYVAR_TOGGLE = 1;
+endif
+""")
+hou.hscript('varchange MYVAR_TOGGLE')
+(out, err) = hou.hscript('echo $MYVAR_TOGGLE')
+if( int(out) ):
+    status = "on"
+else:
+    status = "off"
+hou.ui.displayMessage( "TOGGLE has been turned " + status )
+    ]]> </scriptCode>
+      </scriptToggleItem>
+        <scriptMenuStripRadio>
+            <label>Radio Buttons</label>
+            <variableName>MYVAR_RADIO</variableName>
+            <scriptRadioItem id="h.octo_one">
+                 <label>One</label>
+                 <variableValue>value_of_one</variableValue>
+            </scriptRadioItem>
+            <scriptRadioItem id="h.octo_two">
+                 <label>Two</label>
+                 <variableValue>two</variableValue>
+            </scriptRadioItem>
+            <scriptRadioItem id="h.octo_three">
+                 <label>Three</label>
+                 <variableValue>3</variableValue>
+            </scriptRadioItem>
+            <scriptRadioItem id="h.octo_four">
+                 <label>Four</label>
+                 <variableValue>fourth_value</variableValue>
+                 <scriptCode><![CDATA[
+                    message = 'Do you want to change the global variable MYVAR_RADIO?'
+                    response = hou.ui.displayMessage( message, ('Yes', 'No'))
+                    if response == 0:
+                    hou.hscript("set -g MYVAR_RADIO = 'fourth_value'")
+                    hou.hscript("varchange MYVAR_RADIO")
+                    else:
+                    # call varchange anyway to restore the radio strip UI to old radio index
+                    hou.hscript("varchange MYVAR_RADIO")]]>
+                </scriptCode>
+            </scriptRadioItem>
+        </scriptMenuStripRadio>
+    
+    
+    <scriptMenuStripDynamic id="OctoToolsDynamicStripId">
+        <label>Dynamic Menu Strip</label>
+        <contentsScriptCode><![CDATA[
+        menu_items = ["red", "The Color Red", "green", "The Color Green", "blue", "The Color Blue"]
+        return menu_items
+        ]]></contentsScriptCode>
+        <scriptCode><![CDATA[
+import hou
+
+selected_token = kwargs["selectedtoken"]
+selected_label = kwargs["selectedlabel"]
+
+hou.ui.displayMessage("You have selected %s (%s)." % (selected_label, selected_token))
+        ]]></scriptCode>
+    </scriptMenuStripDynamic>
+
+    </subMenu>
+  </menuBar>
+</mainMenu>

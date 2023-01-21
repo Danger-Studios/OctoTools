@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="bmSopControlPanel" label="SOP Control Panel" icon="hicon:/SVGIcons.index?BUTTONS_pdg_task_table.svg" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from PySide2 import QtWidgets, QtGui, QtCore
+import hou
+import os
+import math
+
+'''
+Hi!
+
+-Reference SOP nodes to access their parameters/flags without moving through the network.
+-It handles renaming and deletion.
+-You can assign fancy colors to your widgets.
+-You can re-arrange the layout of your widgets by drag and droping them.
+-Your can save your current panel infos inside a root null node, 
+so you get your panel back if you reload it or when you open your scene.
+
+I tried to make it quite foolproof, but the code is maybe not the cleanest. 
+It was a lot of experimenting, if you have tips/feedback on how to improve it, 
+I will be more than happy to hear from you!
+Cheers,
+
+Baptiste Malbranque
+
+'''
+
+#Main UI
+class ContentWindow(QtWidgets.QWidget):
+    def __init__(self):
+    
+        super(ContentWindow, self).__init__()
+                
+        self.setStyleSheet("""QGroupBox#StatusDisplay """)
+        self.buildUi()
+        
+        #Load the control panel data saved in the scene if it exists
+        self.nodesFromInfos()
+        
+        
+        
+        
+        
+
+    def buildUi(self):
+
+        masterLayout = QtWidgets.QVBoxLayout()
+
+        self.scrollArea = QtWidgets.QScrollArea()
+        self.scrollArea.setWidgetResizable(True)
+        
+        self.nodeLayout = QtWidgets.QVBoxLayout()
+        self.nodeLayout.setAlignment(QtCore.Qt.AlignTop)
+        self.nodeGroupBox = QtWidgets.QGroupBox()
+        
+        self.nodeGroupBox.setTitle("Nodes")
+
+
+        masterLayout.addWidget(self.scrollArea)
+
+        self.addNodeButton = QtWidgets.QPushButton("Add Node")
+        self.addNodeButton.clicked.connect(self.addNode)
+        self.addNodeButton.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
+        self.saveButton = QtWidgets.QPushButton("Save infos")
+        self.saveButton.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
+        self.saveButton.clicked.connect(self.saveInformations)
+        
+        self.buttonLayout = QtWidgets.QHBoxLayout()
+        
+        self.buttonLayout.addWidget(self.addNodeButton)
+        
+        self.buttonLayout.addWidget(self.saveButton)
+        
+        
+        masterLayout.addLayout(self.buttonLayout)
+
+
+        self.setLayout(masterLayout)
+        self.setGeometry(0, 0, 700, 300)
+
+    #Add a QGroupBox widget object that will contain the node path and its buttons
+    def addNode(self):
+        newNodes = NodeWidget()       
+        self.nodeLayout.addWidget(newNodes, alignment=QtCore.Qt.AlignTop)     
+        self.nodeGroupBox.setLayout(self.nodeLayout)
+        self.scrollArea.setWidget(self.nodeGroupBox)
+        
+    #Create QGroupBox widget objects when the panel is init, if infos was saved in the scene before            
+    def nodesFromInfos(self):
+    
+        #All the Data to saved in the scene is contained in an Object level Null Node called "bmSopControlPanel_DATA"
+        dataNode = hou.node("obj/bmSopControlPanel_DATA")
+        
+        if dataNode != None:
+            ptg = dataNode.parmTemplateGroup() 
+            dataFolder = ptg.findFolder("SOPControlPanel")
+            for folder in dataFolder.parmTemplates():
+                pathParm = folder.parmTemplates()[0].name()
+                colorParm = folder.parmTemplates()[1].name()
+                
+                nodePath = dataNode.parm(pathParm).eval()
+                nodeColor = dataNode.parm(colorParm).eval()
+                
+                
+                newNodes = NodeWidget() 
+                
+                
+                newNodes.nodePath.setText(nodePath)
+                newNodes.updatePath()
+                newNodes.BGcolor = nodeColor
+                newNodes.setStyleSheet('background-color: '+nodeColor)
+                
+                
+                self.nodeLayout.addWidget(newNodes, alignment=QtCore.Qt.AlignTop)     
+                self.nodeGroupBox.setLayout(self.nodeLayout)
+                self.scrollArea.setWidget(self.nodeGroupBox)
+                
+                
+        
+    
+        
+    #Save the control panel layout/nodes-path and colors into an Object level null node called "bmSopControlPanel_DATA"
+    #This infos will be load automatically when a new SOP control panel is created
+    #The purpose is to save your Control Panel in the scene
+    def saveInformations(self):
+        
+        rootNode = hou.node("obj")
+        dataNode = hou.node("obj/bmSopControlPanel_DATA")
+        
+        if dataNode == None:
+            
+            dataNode = rootNode.createNode("null", "bmSopControlPanel_DATA")
+            dataNode.setDisplayFlag(False)
+            ptg = dataNode.parmTemplateGroup() 
+           
+            
+        else:
+            ptg = dataNode.parmTemplateGroup() 
+            dataFolder = ptg.findFolder("SOPControlPanel")
+            ptg.remove(dataFolder)
+        
+               
+        dataFolder = hou.FolderParmTemplate("SOPControlPanel", "SOPControlPanel")
+        
+        items = (self.nodeLayout.itemAt(i) for i in range(self.nodeLayout.count()))  
+        listIt = list(items)
+        
+        for n in range (len(listIt)):
+            
+            
+            nodeWidget = listIt[n].widget()
+            
+            
+            path = nodeWidget.nodePath.text()
+            color = nodeWidget.BGcolor
+           
+            
+            #Parameters
+            pathParameter = hou.StringParmTemplate("path_"+ str(n), "path_" + str(n), 1, default_value = (path,))
+            
+            
+            colorParameter = hou.StringParmTemplate("color_"+ str(n), "color_" + str(n), 1,default_value= (color,))
+            
+            nodeFolder = hou.FolderParmTemplate("node " + str(n), "node " + str(n))
+            nodeFolder.addParmTemplate(pathParameter)
+            nodeFolder.addParmTemplate(colorParameter)
+           
+            dataFolder.addParmTemplate(nodeFolder)
+            
+        ptg.append(dataFolder)
+        dataNode.setParmTemplateGroup(ptg)
+        
+                
+    
+#QGroupBox object containing the node path and its buttons.
+class NodeWidget(QtWidgets.QGroupBox):
+    def __init__(self):
+        super(NodeWidget, self).__init__()
+
+        self.buildUi()
+        self.BGcolor = ""
+        self.node = hou.node("")
+                       
+     
+    #Get the mouse position when there is a clic event on the groupBox
+    def mousePressEvent(self, event):
+       
+        self.__mousePressPos = None
+        self.__mouseMovePos = None
+        if event.button() == QtCore.Qt.LeftButton:
+            self.__mousePressPos = event.globalPos()
+            self.__mouseMovePos = event.globalPos()
+ 
+    #Move the groupBox when draging it    
+    def mouseMoveEvent(self, event):
+        if event.buttons() == QtCore.Qt.LeftButton:
+            # adjust offset from clicked point to origin of widget
+            currPos = self.mapToGlobal(self.pos())
+            globalPos = event.globalPos()
+            diff = globalPos - self.__mouseMovePos
+            
+           
+            newPos = self.mapFromGlobal(currPos + diff)
+            newPosY = newPos.y()
+            
+            self.dropIndicatorRect = QtCore.QRect()
+            self.move(self.pos().x(), newPos.y())
+            self.setWindowOpacity(0.0)
+
+            self.__mouseMovePos = globalPos
+
+    #if you drag the groupBox more than its size in Y, it rearrange its place in the layout    
+    def mouseReleaseEvent(self, event):
+        if self.__mousePressPos is not None:
+            layout = self.parentWidget().layout()
+            index = layout.indexOf(self)
+            
+            yMove = self.__mouseMovePos.y()
+            yOrig = self.__mousePressPos.y()
+            
+            moving = yMove - yOrig
+
+            size = float(self.size().height())
+            
+            
+            inc = moving/size
+            
+            if inc>0:
+                inc = math.floor(inc)
+                
+            if inc<0:
+                inc = math.ceil(inc)
+            
+            index = index + inc
+                 
+            layout.removeWidget(self)
+            layout.insertWidget(index,self)
+                
+
+    def buildUi(self):
+        self.setFixedHeight(60)
+        
+        self.deleteButton = QtWidgets.QPushButton()    
+        self.deleteButton.setFixedSize(14, 14)
+        image = hou.qt.Icon("BUTTONS_delete")
+        self.deleteButton.setIcon(image)
+        self.deleteButton.clicked.connect(self.deleteWidget)
+        
+        self.colorLabel = QtWidgets.QLabel()
+        
+        self.colorLabel.setAutoFillBackground(True)
+        self.colorLabel.setStyleSheet('background-color: rgb(150,150,150)')
+        self.colorLabel.setStyleSheet('border: 2px solid rgb(40,40,40);')
+        self.colorLabel.setFixedSize(14, 14)
+        self.colorLabel.mouseReleaseEvent = self.changeColor
+       
+        self.pathLabel = QtWidgets.QLabel("Path: ")
+        self.nodePath = lineEdit()
+        self.nodePath.textChanged.connect(self.updatePath)
+
+        self.ButtonSelectNode = QtWidgets.QPushButton()
+        image = hou.qt.Icon("BUTTONS_gear")
+        self.ButtonSelectNode.setIcon(image)
+        self.ButtonSelectNode.setFixedWidth(25)
+
+        self.ButtonDisplayF = QtWidgets.QPushButton('Disp')
+        self.ButtonDisplayF.setFixedWidth(85)
+        image = hou.qt.Icon("NODEFLAGS_display")
+        self.ButtonDisplayF.setIcon(image)
+
+        self.ButtonBypassF = QtWidgets.QPushButton('Byp')
+        self.ButtonBypassF.setCheckable(True)
+        self.ButtonBypassF.setFixedWidth(85)
+        image = hou.qt.Icon("NODEFLAGS_bypass")
+        self.ButtonBypassF.setIcon(image)
+        
+
+        self.ButtonTempF = QtWidgets.QPushButton('Temp')
+        self.ButtonTempF.setCheckable(True)
+        self.ButtonTempF.setFixedWidth(85)
+        image = hou.qt.Icon("NODEFLAGS_template")
+        self.ButtonTempF.setIcon(image)
+        
+
+        self.ButtonJumpToNode = QtWidgets.QPushButton()
+        image = hou.qt.Icon("BUTTONS_jump")
+        self.ButtonJumpToNode.setIcon(image)
+        self.ButtonJumpToNode.setFixedWidth(25)
+
+
+        self.ButtonSelectNode.clicked.connect(self.selectNode)
+        self.ButtonDisplayF.clicked.connect(self.displayFlag)
+        self.ButtonBypassF.clicked.connect(self.bypassFlag)
+        self.ButtonTempF.clicked.connect(self.templateFlag)
+        self.ButtonJumpToNode.clicked.connect(self.jumpToNode)
+
+        nodeLayout = QtWidgets.QHBoxLayout()
+        nodeLayout.addWidget(self.deleteButton)
+        nodeLayout.addSpacing(10)
+        nodeLayout.addWidget(self.colorLabel)
+        nodeLayout.addWidget(self.pathLabel)
+        nodeLayout.addWidget(self.nodePath)
+        nodeLayout.addWidget(self.ButtonSelectNode)
+        nodeLayout.addWidget(self.ButtonDisplayF)
+        nodeLayout.addWidget(self.ButtonBypassF)
+        nodeLayout.addWidget(self.ButtonTempF)
+        nodeLayout.addWidget(self.ButtonJumpToNode)
+
+        self.setLayout(nodeLayout)
+        
+
+    #If the node exists, select it
+    def selectNode(self):
+    
+        self.updatePath()
+        
+                
+
+        if self.node != None:
+            self.node.setSelected(True, clear_all_selected=True)
+        else:
+            self.wrongPath()
+
+    #if the node exist, set the display flag on
+    def displayFlag(self):
+       
+        self.updatePath()
+
+        if self.node != None:
+            self.node.setDisplayFlag(True)
+            self.node.setRenderFlag(True)
+        else:
+            self.wrongPath()
+    
+    #if the node exist, change the bypass flag depending on the button toggle
+    def bypassFlag(self):
+    
+        self.updatePath()
+              
+        if self.node != None:
+            state = self.ButtonBypassF.isChecked()
+            if (state):
+                self.node.bypass(True)
+            else:
+                self.node.bypass(False)
+        else:
+            self.wrongPath()
+            
+            
+    #if the node exist, set the template flag on
+    def templateFlag(self):
+        
+        self.updatePath()
+
+        if self.node != None:
+            state = self.ButtonTempF.isChecked()
+            if (state):
+                self.node.setTemplateFlag(True)
+            else:
+                self.node.setTemplateFlag(False)
+        else:
+            self.wrongPath()
+
+
+    #if the node exist, jump to the node in the network editor
+    def jumpToNode(self):
+        
+        self.updatePath()
+               
+        if self.node != None:
+            self.node.setSelected(True, clear_all_selected=True)
+
+            netView = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    
+            netView.homeToSelection()
+            netView.homeToSelection()
+            
+            
+        else:
+            self.wrongPath()
+    
+    
+    def changeColor(self,event):
+        color = QtWidgets.QColorDialog.getColor()
+        if color.isValid():
+            self.BGcolor = color.name()
+            self.setStyleSheet('background-color: '+self.BGcolor)
+
+     
+    def deleteWidget(self):
+        self.nodePath.setText("")
+        self.nodePath.deleteLater()
+        self.deleteLater()
+        
+        
+    def wrongPath(self):
+        message = "This node can't be found: " + self.nodePath.text()
+        hou.ui.displayMessage(message)
+        
+        
+    def nodeRenamed(self, node, event_type, **kwargs):
+        
+        path = self.node.path()
+        self.nodePath.setText(path)
+        self.updatePath()
+        
+    def nodeDeleted(self, node, event_type, **kwargs):
+        
+        
+        self.setStyleSheet('background-color: rgb(200,0,0)')
+        self.node = hou.node("")
+        self.nodePath.setText(self.nodePath.text()+"--(DELETED)--")
+        self.updatePath()
+         
+        
+    # add some renames eventCallbacks if the node path exists   
+    def updatePath(self):
+        nodePath = self.nodePath.text()
+        node = hou.node(nodePath)
+        
+             
+     
+        if node != None:
+        
+            
+            
+            parentWidget = self.parentWidget()
+            refnum = 0
+            
+            if parentWidget != None:
+                layout = parentWidget.layout()
+                widgetsCount = layout.count()
+            
+            
+                for i in range (0,widgetsCount):
+                    
+                    if node.path() == layout.itemAt(i).widget().nodePath.text():
+                        refnum += 1 
+                    
+            #print "ref num : ", refnum
+            
+            if refnum > 1: 
+                message = "This node is already referenced in this panel."
+                hou.ui.displayMessage(message)
+                nodePath = self.nodePath.setText("")
+                self.updatePath()
+                
+                
+            else:
+                
+                if self.node != None:
+                
+                    parent = self.node
+                
+                    self.node.removeEventCallback((hou.nodeEventType.BeingDeleted, ), self.nodeDeleted)
+                    while parent.path() != "/":
+                        parent.removeEventCallback((hou.nodeEventType.NameChanged, ), self.nodeRenamed)
+                        
+                        parent = parent.parent()
+                    
+                    
+                              
+                self.node = node
+                                   
+                parent = node
+                
+                self.node.addEventCallback((hou.nodeEventType.BeingDeleted, ), self.nodeDeleted)
+                while parent.path() != "/":
+                    parent.addEventCallback((hou.nodeEventType.NameChanged, ), self.nodeRenamed)
+                    
+                    parent = parent.parent()
+                                              
+                node.addEventCallback((hou.nodeEventType.NameChanged, ), self.nodeRenamed)
+                
+        
+        
+        
+        else:
+            
+            if self.node != None:
+            
+                parent = self.node
+                
+                self.node.removeEventCallback((hou.nodeEventType.BeingDeleted, ), self.nodeDeleted)
+                while parent.path() != "/":
+                    parent.removeEventCallback((hou.nodeEventType.NameChanged, ), self.nodeRenamed)
+                    
+                    parent = parent.parent()
+                    
+                    
+                
+                
+               
+            self.node = hou.node("")
+            
+        
+        
+        
+        
+                    
+#QLineEdit with the node path the add it a drop event resetting the node path    
+class lineEdit(QtWidgets.QLineEdit):
+    def __init__(self):
+        super(lineEdit, self).__init__()
+
+        self.setDragEnabled(True)
+        
+        
+    def dropEvent( self, event ):
+        data = event.mimeData()
+        path = data.text()
+        
+        type = hou.node(path)
+        
+        if (isinstance(type, hou.SopNode)):
+            self.setText(path)
+            
+        else:
+            message = "You can only reference SOP nodes."
+            hou.ui.displayMessage(message)
+        
+                             
+                                   
+#Load the app     
+def onCreateInterface():
+    ui = ContentWindow()
+  
+    return ui
+]]></script>
+    <includeInToolbarMenu menu_position="106" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>

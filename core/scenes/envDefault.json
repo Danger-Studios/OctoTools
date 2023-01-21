@@ -1,0 +1,13 @@
+{
+    "env": [
+        {
+            "SHOW": "MGN"
+        },
+        {
+            "TASKS": "TEST"
+        },
+        {
+            "SHOTS": "SHOT"
+        }
+    ]
+}

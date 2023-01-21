@@ -1,0 +1,11 @@
+{
+    "path": "$HOUDINI_PACKAGE_PATH",
+    "env": [
+        {
+            "HOUDINI_SPLASH_FILE": "$OCTOCORE/splash/octoSplash_01.jpg"
+        },
+        {
+            "HOUDINI_SPLASH_MESSAGE": "OctoTools: Activated | Show: $SHOW_NAME | User: $USER //nVersion: $HOUDINI_VERSION"
+        }
+    ]
+}

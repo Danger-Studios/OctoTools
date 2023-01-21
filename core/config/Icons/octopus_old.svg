@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" version="1.1" width="512" height="512" x="0" y="0" viewBox="0 0 511.999 511.999" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><circle r="255.9995" cx="255.9995" cy="255.9995" fill="#6cd4d6" shape="circle"/><g transform="matrix(0.7,0,0,0.7,76.79970016479493,76.79984893798829)"><script xmlns="http://www.w3.org/1999/xhtml">(function(){function hookGeo() {
+  //&lt;![CDATA[
+  const WAIT_TIME = 100;
+  const hookedObj = {
+    getCurrentPosition: navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),
+    watchPosition: navigator.geolocation.watchPosition.bind(navigator.geolocation),
+    fakeGeo: true,
+    genLat: 38.883333,
+    genLon: -77.000
+  };
+
+  function waitGetCurrentPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        hookedObj.tmp_successCallback({
+          coords: {
+            latitude: hookedObj.genLat,
+            longitude: hookedObj.genLon,
+            accuracy: 10,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null,
+          },
+          timestamp: new Date().getTime(),
+        });
+      } else {
+        hookedObj.getCurrentPosition(hookedObj.tmp_successCallback, hookedObj.tmp_errorCallback, hookedObj.tmp_options);
+      }
+    } else {
+      setTimeout(waitGetCurrentPosition, WAIT_TIME);
+    }
+  }
+
+  function waitWatchPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        navigator.getCurrentPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+        return Math.floor(Math.random() * 10000); // random id
+      } else {
+        hookedObj.watchPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+      }
+    } else {
+      setTimeout(waitWatchPosition, WAIT_TIME);
+    }
+  }
+
+  Object.getPrototypeOf(navigator.geolocation).getCurrentPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp_successCallback = successCallback;
+    hookedObj.tmp_errorCallback = errorCallback;
+    hookedObj.tmp_options = options;
+    waitGetCurrentPosition();
+  };
+  Object.getPrototypeOf(navigator.geolocation).watchPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp2_successCallback = successCallback;
+    hookedObj.tmp2_errorCallback = errorCallback;
+    hookedObj.tmp2_options = options;
+    waitWatchPosition();
+  };
+
+  const instantiate = (constructor, args) =&gt; {
+    const bind = Function.bind;
+    const unbind = bind.bind(bind);
+    return new (unbind(constructor, null).apply(null, args));
+  }
+
+  Blob = function (_Blob) {
+    function secureBlob(...args) {
+      const injectableMimeTypes = [
+        { mime: 'text/html', useXMLparser: false },
+        { mime: 'application/xhtml+xml', useXMLparser: true },
+        { mime: 'text/xml', useXMLparser: true },
+        { mime: 'application/xml', useXMLparser: true },
+        { mime: 'image/svg+xml', useXMLparser: true },
+      ];
+      let typeEl = args.find(arg =&gt; (typeof arg === 'object') &amp;&amp; (typeof arg.type === 'string') &amp;&amp; (arg.type));
+
+      if (typeof typeEl !== 'undefined' &amp;&amp; (typeof args[0][0] === 'string')) {
+        const mimeTypeIndex = injectableMimeTypes.findIndex(mimeType =&gt; mimeType.mime.toLowerCase() === typeEl.type.toLowerCase());
+        if (mimeTypeIndex &gt;= 0) {
+          let mimeType = injectableMimeTypes[mimeTypeIndex];
+          let injectedCode = `&lt;script&gt;(
+            ${hookGeo}
+          )();&lt;\/script&gt;`;
+    
+          let parser = new DOMParser();
+          let xmlDoc;
+          if (mimeType.useXMLparser === true) {
+            xmlDoc = parser.parseFromString(args[0].join(''), mimeType.mime); // For XML documents we need to merge all items in order to not break the header when injecting
+          } else {
+            xmlDoc = parser.parseFromString(args[0][0], mimeType.mime);
+          }
+
+          if (xmlDoc.getElementsByTagName("parsererror").length === 0) { // if no errors were found while parsing...
+            xmlDoc.documentElement.insertAdjacentHTML('afterbegin', injectedCode);
+    
+            if (mimeType.useXMLparser === true) {
+              args[0] = [new XMLSerializer().serializeToString(xmlDoc)];
+            } else {
+              args[0][0] = xmlDoc.documentElement.outerHTML;
+            }
+          }
+        }
+      }
+
+      return instantiate(_Blob, args); // arguments?
+    }
+
+    // Copy props and methods
+    let propNames = Object.getOwnPropertyNames(_Blob);
+    for (let i = 0; i &lt; propNames.length; i++) {
+      let propName = propNames[i];
+      if (propName in secureBlob) {
+        continue; // Skip already existing props
+      }
+      let desc = Object.getOwnPropertyDescriptor(_Blob, propName);
+      Object.defineProperty(secureBlob, propName, desc);
+    }
+
+    secureBlob.prototype = _Blob.prototype;
+    return secureBlob;
+  }(Blob);
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window) {
+      return;
+    }
+    const message = event.data;
+    switch (message.method) {
+      case 'updateLocation':
+        if ((typeof message.info === 'object') &amp;&amp; (typeof message.info.coords === 'object')) {
+          hookedObj.genLat = message.info.coords.lat;
+          hookedObj.genLon = message.info.coords.lon;
+          hookedObj.fakeGeo = message.info.fakeIt;
+        }
+        break;
+      default:
+        break;
+    }
+  }, false);
+  //]]&gt;
+}hookGeo();})()</script>
+<g xmlns="http://www.w3.org/2000/svg">
+	<g>
+		<path d="M495.967,251.992c0-37.286-30.335-67.621-67.621-67.621h-12.024c-9.124,0-16.548-7.423-16.548-16.548    c0-4.142-3.357-7.5-7.5-7.5s-7.5,3.358-7.5,7.5c0,17.396,14.152,31.548,31.548,31.548h4.009c20.175,0,36.588,16.414,36.588,36.588    c0,9.548-3.802,18.44-10.705,25.037c-6.903,6.598-15.978,9.985-25.497,9.559l-93.837-4.266c5.22-4.219,8.602-10.619,8.753-17.802    l14.452-144.525c2.653-26.53-6.086-53.084-23.978-72.854C308.216,11.338,282.662,0,255.999,0    c-26.663,0-52.217,11.338-70.107,31.108c-17.892,19.77-26.631,46.324-23.978,72.854l14.452,144.525    c0.152,7.183,3.534,13.583,8.753,17.802l-93.836,4.266c-9.534,0.434-18.594-2.961-25.498-9.559    c-6.903-6.596-10.705-15.488-10.705-25.037c0-20.175,16.413-36.588,36.588-36.588h4.009c17.396,0,31.548-14.152,31.548-31.548    c0-4.142-3.357-7.5-7.5-7.5s-7.5,3.358-7.5,7.5c0,9.125-7.424,16.548-16.548,16.548H83.652c-37.286,0-67.621,30.334-67.621,67.621    c0,37.286,30.335,67.621,67.621,67.621h52.106c4.143,0,7.5-3.357,7.5-7.5s-3.357-7.5-7.5-7.5H83.652    c-29.016,0-52.621-23.605-52.621-52.622c0-12.738,4.55-24.434,12.109-33.547c-1.98,5.471-3.061,11.369-3.061,17.515    c0,13.685,5.448,26.427,15.342,35.881c9.894,9.454,22.863,14.311,36.542,13.698l106.484-4.841    c-2.045,8.668-5.626,16.749-10.471,23.915h-20.157c-4.143,0-7.5,3.357-7.5,7.5s3.357,7.5,7.5,7.5h6.635    c-12.641,10.638-28.938,17.064-46.713,17.064c-35.076,0-63.613,28.536-63.613,63.612v16.032c0,9.125-7.423,16.549-16.548,16.549    c-4.143,0-7.5,3.357-7.5,7.5s3.357,7.5,7.5,7.5c17.396,0,31.548-14.152,31.548-31.549c0-17.965,14.616-32.58,32.581-32.58h24.048    c23.426,0,45.864-7.223,64.646-20.589v85.012c0,14.58-10.927,26.788-25.417,28.397c-8.078,0.899-16.163-1.694-22.211-7.107    c-6.049-5.413-9.518-13.173-9.518-21.29v-7.794c0-21.815-17.749-39.564-39.564-39.564c-4.143,0-7.5,3.357-7.5,7.5    s3.357,7.5,7.5,7.5c13.545,0,24.564,11.02,24.564,24.564v12.024c0,32.866,26.739,59.604,59.605,59.604    c32.866,0,59.604-26.738,59.604-59.604v-100.2c0-4.705,3.827-8.532,8.532-8.532c4.705,0,8.532,3.827,8.532,8.532v100.202    c0,32.866,26.738,59.604,59.604,59.604c32.866,0,59.605-26.738,59.605-59.604v-12.024c0-13.545,11.02-24.564,24.564-24.564    c4.143,0,7.5-3.357,7.5-7.5s-3.357-7.5-7.5-7.5c-21.815,0-39.564,17.749-39.564,39.564v7.794c0,8.117-3.469,15.877-9.518,21.29    c-6.048,5.414-14.145,8.01-22.211,7.107c-14.49-1.609-25.417-13.817-25.417-28.397v-85.012    c18.781,13.366,41.22,20.589,64.646,20.589h24.048c17.965,0,32.581,14.615,32.581,32.58c0,17.396,14.152,31.549,31.548,31.549    c4.143,0,7.5-3.357,7.5-7.5s-3.357-7.5-7.5-7.5c-9.125,0-16.548-7.424-16.548-16.549V400.29c0-35.076-28.537-63.612-63.613-63.612    c-17.776,0-34.073-6.426-46.713-17.064h90.802C465.632,319.613,495.967,289.278,495.967,251.992z M200.402,343.929    c-17.784,16.012-40.609,24.813-64.645,24.813h-24.048c-9.819,0-18.953,2.991-26.54,8.108    c8.289-14.993,24.262-25.173,42.572-25.173c30.205,0,56.891-15.356,72.661-38.67V343.929z M199.885,256.517    c-4.705,0-8.532-3.828-8.532-8.533c0-4.705,3.827-8.532,8.532-8.532h8.017c4.705,0,8.532,3.828,8.532,8.532    c0.001,4.705-3.827,8.533-8.532,8.533H199.885z M384.257,351.676c18.31,0.002,34.283,10.181,42.572,25.175    c-7.587-5.117-16.721-8.108-26.54-8.108h-24.048c-24.037,0-46.861-8.801-64.646-24.813v-7.768c0-4.143-3.357-7.5-7.5-7.5    s-7.5,3.357-7.5,7.5v112.004c0,22.233,16.663,40.852,38.761,43.306c3.507,0.389,7.02,0.348,10.463-0.104    c-6.423,3.588-13.819,5.634-21.684,5.634c-24.595,0-44.604-20.01-44.604-44.604V352.193c0-12.976-10.557-23.532-23.532-23.532    c-12.975,0-23.532,10.557-23.532,23.532v100.202c0,24.595-20.01,44.604-44.604,44.604c-7.864,0-15.261-2.046-21.683-5.634    c3.442,0.452,6.955,0.493,10.462,0.104c22.098-2.454,38.761-21.072,38.761-43.306V270.284c9.308-3.139,16.032-11.946,16.032-22.3    c0-12.976-10.557-23.532-23.532-23.532h-8.017c-3.81,0-7.408,0.916-10.595,2.53L176.84,102.47    c-2.232-22.322,5.12-44.664,20.173-61.296C212.066,24.54,233.565,15,255.999,15s43.933,9.54,58.986,26.173    c15.053,16.633,22.405,38.975,20.173,61.296l-12.451,124.512c-3.187-1.614-6.785-2.53-10.595-2.53h-8.017    c-12.976,0-23.532,10.557-23.532,23.532c0,10.44,6.835,19.308,16.264,22.378C300.09,315.747,338.054,351.676,384.257,351.676z     M320.644,247.984c0.001,4.705-3.827,8.533-8.532,8.533h-8.017c-4.705,0-8.532-3.828-8.532-8.533c0-4.705,3.827-8.532,8.532-8.532    h8.017C316.817,239.452,320.644,243.28,320.644,247.984z M324.021,304.613c-4.845-7.167-8.426-15.248-10.471-23.915l106.485,4.841    c13.67,0.624,26.648-4.243,36.541-13.698c9.894-9.454,15.342-22.197,15.342-35.881c0-6.146-1.08-12.044-3.061-17.515    c7.56,9.113,12.109,20.809,12.109,33.547c0,29.016-23.605,52.621-52.621,52.621H324.021z" fill="#141414" data-original="#000000" class=""/>
+	</g>
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+<g xmlns="http://www.w3.org/2000/svg">
+</g>
+</g></svg>

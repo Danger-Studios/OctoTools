@@ -1,0 +1,11 @@
+{
+    "path": "$OCIO",
+    "load_package_once": true,
+    "enable": true,
+    "version": "1.0.3",
+    "env": [
+        {
+            "OCIO": "$OCTOCORE/ocio/aces_1.0.3_config.ocio"
+        }
+    ]
+}

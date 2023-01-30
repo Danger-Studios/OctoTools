@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <interface name="OctoShot" label="OctoShot" icon="$OCTOCORE/config/Icons/octopus_white.svg" showNetworkNavigationBar="false" help_url="charcter:autorigs">
+    <script><![CDATA[
+import os
+from importlib import reload
+from OctoShot import OctoShot
+
+# Re-init the UI
+reload(OctoShot)
+
+# load the UI from $OCTOCORE/scripts/python/OctoBrowser:
+def createInterface():
+    return OctoShot.mainWindow()
+
+
+]]></script>
+    <includeInPaneTabMenu menu_position="100" create_separator="false"/>
+    <includeInToolbarMenu menu_position="0" create_separator="true"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>

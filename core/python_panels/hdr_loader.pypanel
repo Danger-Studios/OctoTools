@@ -6,7 +6,8 @@
  same interface or of the interfaces menu are not allowed
  in a single file. -->
   <interface name="OctoHDR" label="OctoHDR" icon="X:/Shared drives/Pipeline/tools/octoTools/core/config/Icons/octopus_white.svg" showNetworkNavigationBar="false" help_url="">
-    <script><![CDATA[import os
+    <script><![CDATA[
+import os
 import sys
 
 from hutil.Qt import QtCore

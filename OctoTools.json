@@ -6,7 +6,7 @@
     "version": "19.x.x",
     "env": [
         {
-            "OCTOTOOLS": "X:/Shared drives/Pipeline/tools/OctoTools"
+            "OCTOTOOLS": "//fathom/S/tools/Octopus/octoTools"
         }
     ],
     "package_path": [

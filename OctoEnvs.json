@@ -1,6 +1,9 @@
 {
     "env": [
         {
+            "ROOT": "j:"
+        },
+        {
             "SHOW": "OFMD"
         },
         {
@@ -22,25 +25,25 @@
             "TASK": "setups"
         },
         {
-            "RENDERS": "J:/$SHOW/$EP/Renders/$SHOT_NAME/"
+            "RENDERS": "$ROOT/$SHOW/$EP/Renders/$SHOT_NAME/"
         },
         {
-            "3D": "J:/$SHOW/$EP/3D/$SHOT_NAME/$TASK/"
+            "3D": "$ROOT/$SHOW/$EP/3D/$SHOT_NAME/$TASK/"
         },
         {
-            "CACHE": "J:/$SHOW/$EP/CACHE/$SHOT_NAME/$TASK/"
+            "CACHE": "$ROOT/$SHOW/$EP/CACHE/$SHOT_NAME/$TASK/"
         },
         {
-            "PLAYBLAST": "J:/$SHOW/$EP/CACHE/$SHOT_NAME/Playblast/"
+            "PLAYBLAST": "$ROOT/$SHOW/$EP/CACHE/$SHOT_NAME/Playblast/"
         },
         {
-            "SHOTGRID_URL": "https://ohufx.shotgunstudio.com"
+            "SHOTGRID_URL": "https://yoururl.shotgunstudio.com"
         },
         {
-            "SHOTGRID_LOGIN": "hello@danger.studio"
+            "SHOTGRID_LOGIN": "username"
         },
         {
-            "SHOTGRID_PASSWORD": "3Illiams!"
+            "SHOTGRID_PASSWORD": "password"
         },
         {
             "SHOTGRID_SCRIPT_NAME": "fathom"
